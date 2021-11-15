@@ -1,8 +1,7 @@
 #!/bin/bash
 
 getToken() {
-  clientId=$(cat .env | jq -r .clientId)
-  secret=$(cat .env | jq -r .secret)
+  source ~/repos/sbanken.sh/.env
 
   acceptHeader='Accept: application/json'
   contentTypeHeader='Content-Type: application/x-www-form-urlencoded; charset=utf-8'
@@ -13,21 +12,21 @@ getToken() {
 }
 
 displayHelp() {
-    echo "Sbanken TUI"
-    echo 
-    echo "USAGE:"
-    echo "  sbanken"
-    echo
-    echo "ARGUMENTS:"
-    echo "  -h, --help      Print Help (this message)"
-    echo "  -a, --accounts  Returns all available accounts"
-    echo "  -c, --cards     Returns all available cards"
-    echo
-    echo "DESCRIPTION:"
-    echo "  WIP"
-    echo
+  echo "Sbanken TUI"
+  echo 
+  echo "USAGE:"
+  echo "  sbanken"
+  echo
+  echo "ARGUMENTS:"
+  echo "  -h, --help      Print Help (this message)"
+  echo "  -a, --accounts  Returns all available accounts"
+  echo "  -c, --cards     Returns all available cards"
+  echo
+  echo "DESCRIPTION:"
+  echo "  WIP"
+  echo
 
-    exit 0
+  exit 0
 }
 
 getAccounts() {
@@ -37,10 +36,10 @@ getAccounts() {
 
   for i in $(seq 0 $(($accountMatches - 1)))
   do
-      accountNumber=$(echo $accounts | jq -r ".items[$i].accountNumber")
-      balance=$(echo $accounts | jq -r ".items[$i].available")
-      name=$(echo $accounts | jq -r ".items[$i].name")
-      printf "%-20s\t%-11s\t%8.2f 💰\n" "$name" "$accountNumber" "$balance"
+    accountNumber=$(echo $accounts | jq -r ".items[$i].accountNumber")
+    balance=$(echo $accounts | jq -r ".items[$i].available")
+    name=$(echo $accounts | jq -r ".items[$i].name")
+    printf "%-20s\t%-11s\t%8.2f 💰\n" "$name" "$accountNumber" "$balance"
   done
 }
 
@@ -51,10 +50,10 @@ getCards() {
 
   for i in $(seq 0 $(($cardMatches - 1)))
   do
-      cardNumber=$(echo $cards | jq -r ".items[$i].accountNumber")
-      cardStatus=$(echo $cards | jq -r ".items[$i].status")
-      accountOwner=$(echo $cards | jq -r ".items[$i].accountOwner")
-      printf "%-20s\t%-11s\t%-20s\n" "$cardNumber" "$cardStatus" "$accountOwner"
+    cardNumber=$(echo $cards | jq -r ".items[$i].accountNumber")
+    cardStatus=$(echo $cards | jq -r ".items[$i].status")
+    accountOwner=$(echo $cards | jq -r ".items[$i].accountOwner")
+    printf "%-20s\t%-11s\t%-20s\n" "$cardNumber" "$cardStatus" "$accountOwner"
   done
 }
 
@@ -66,9 +65,9 @@ getToken
 for arg in "$@"
 do
   if [ "$arg" == "-c" ] || [ "$arg" == "--cards" ]; then
-      getCards
+    getCards
   elif [ "$arg" == "-a" ] || [ "$arg" == "--accounts" ]; then
-      getAccounts
+    getAccounts
   fi
 done
 
