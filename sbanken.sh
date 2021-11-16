@@ -35,12 +35,26 @@ getAccounts() {
   accounts=$(curl -q -H "Authorization: Bearer $token" "https://publicapi.sbanken.no/apibeta/api/v2/accounts"  2>/dev/null)
   accountMatches=$(echo $accounts|jq -r .availableItems)
 
+  if [[ -n $verbose && $verbose == 'true' ]] ; then
+    accountsOutputFormat="%-20s\t%-20s\t%-11s\t%8.2f 💰\n"
+  else
+    accountsOutputFormat="%-20s\t%-11s\t%8.2f 💰\n"
+  fi
+
   for i in $(seq 0 $(($accountMatches - 1)))
   do
     accountNumber=$(echo $accounts | jq -r ".items[$i].accountNumber")
+    if [[ -n $verbose && $verbose == 'true' ]] ; then
+      accountId=$(echo $accounts | jq -r ".items[$i].accountId")
+    fi
     balance=$(echo $accounts | jq -r ".items[$i].available")
     name=$(echo $accounts | jq -r ".items[$i].name")
-    printf "%-20s\t%-11s\t%8.2f 💰\n" "$name" "$accountNumber" "$balance"
+
+    if [[ -n $verbose && $verbose == 'true' ]] ; then
+      printf "$accountsOutputFormat" "$accountId" "$name" "$accountNumber" "$balance"
+    else
+      printf "$accountsOutputFormat" "$name" "$accountNumber" "$balance"
+    fi
   done
 }
 
@@ -72,19 +86,26 @@ getEfaktura() {
   done
 }
 
-if [ "$1" == "-h" ] || [ "$1" == "--help" ] || [ "$#" -lt 1 ]; then
-    displayHelp
-fi
+verbose='false'
 
-getToken
-for arg in "$@"
-do
-  if [ "$arg" == "-c" ] || [ "$arg" == "--cards" ]; then
-    getCards
-  elif [ "$arg" == "-a" ] || [ "$arg" == "--accounts" ]; then
-    getAccounts
-  elif [ "$arg" == "-e" ] || [ "$arg" == "--efaktura" ]; then
-    getEfaktura
-  fi
+while getopts 'acevh' flag; do
+  case "${flag}" in
+    a)  getToken 
+        eval nextopt=\${$OPTIND}
+        # existing and not starting with dash?
+        if [[ -n $nextopt && $nextopt != -* ]] ; then
+          OPTIND=$((OPTIND + 1))
+        fi
+        getAccounts ;;
+    c)  getToken
+        getCards ;;
+    e)  getToken
+        getEfaktura ;;
+    v)  verbose='true' ;;
+    h)  displayHelp ;;
+    *)  displayHelp
+        exit 1 ;;
+  esac
 done
+
 
