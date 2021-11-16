@@ -21,6 +21,7 @@ displayHelp() {
   echo "  -h, --help      Print Help (this message)"
   echo "  -a, --accounts  Returns all available accounts"
   echo "  -c, --cards     Returns all available cards"
+  echo "  -e, --efaktura  Returns all available cards"
   echo
   echo "DESCRIPTION:"
   echo "  WIP"
@@ -57,6 +58,20 @@ getCards() {
   done
 }
 
+getEfaktura() {
+  echo "Efaktura"
+  efaktura=$(curl -q -H "Authorization: Bearer $token" "https://publicapi.sbanken.no/apibeta/api/v2/efaktura"  2>/dev/null)
+  efakturaMatches=$(echo $cards|jq -r .availableItems)
+
+  for i in $(seq 0 $(($cardMatches - 1)))
+  do
+    issuerName=$(echo $efaktura | jq -r ".items[$i].issuerName")
+    efakturaStatus=$(echo $efaktura | jq -r ".items[$i].status")
+    amount=$(echo $efaktura | jq -r ".items[$i].originalAmount")
+    printf "%-20s\t%-11s\t%8.2f\n" "$issuerName" "$efakturaStatus" "$amount"
+  done
+}
+
 if [ "$1" == "-h" ] || [ "$1" == "--help" ] || [ "$#" -lt 1 ]; then
     displayHelp
 fi
@@ -68,6 +83,8 @@ do
     getCards
   elif [ "$arg" == "-a" ] || [ "$arg" == "--accounts" ]; then
     getAccounts
+  elif [ "$arg" == "-e" ] || [ "$arg" == "--efaktura" ]; then
+    getEfaktura
   fi
 done
 
