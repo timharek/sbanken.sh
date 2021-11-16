@@ -79,6 +79,30 @@ getAccount() {
   fi
 }
 
+getTransactions() {
+  echo "Transactions for $enteredAccountId"
+  transactions=$(curl -q -H "Authorization: Bearer $token" "https://publicapi.sbanken.no/apibeta/api/v2/transactions/$enteredAccountId"  2>/dev/null)
+  transactionsMatches=$(echo $transactions|jq -r .availableItems)
+
+  for i in $(seq 0 $(($transactionsMatches - 1)))
+  do
+    transactionDate=$(echo $transactions | jq -r ".items[$i].accountingDate")
+    transactionAmount=$(echo $transactions | jq -r ".items[$i].amount")
+    transactionText=$(echo $transactions | jq -r ".items[$i].text")
+    if [[ $transactionAmount =~ "-" ]]; then
+      transactionOutputFormat="%-20s\t%.20s\t\t\t%8.2f 🤑\n"
+    else
+      transactionOutputFormat="%-20s\t%.20s\t\t\t%8.2f 💸\n"
+    fi
+
+    if [[ -n $verbose && $verbose == 'true' ]] ; then
+      printf "$transactionsOutputFormat" "$accountId" "$name" "$accountNumber" "$balance"
+    else
+      printf "$transactionOutputFormat" "$transactionDate" "$transactionText" "$transactionAmount"
+    fi
+  done
+}
+
 getCards() {
   echo "Cards"
   cards=$(curl -q -H "Authorization: Bearer $token" "https://publicapi.sbanken.no/apibeta/api/v2/cards"  2>/dev/null)
@@ -109,7 +133,7 @@ getEfaktura() {
 
 verbose='false'
 
-while getopts 'acevh' flag; do
+while getopts 'acetvh' flag; do
   case "${flag}" in
     a)  getToken 
         eval nextopt=\${$OPTIND}
@@ -118,7 +142,6 @@ while getopts 'acevh' flag; do
           OPTIND=$((OPTIND + 1))
           enteredAccountId=$nextopt
           getAccount
-
         else
           getAccounts
         fi ;;
@@ -126,9 +149,19 @@ while getopts 'acevh' flag; do
         getCards ;;
     e)  getToken
         getEfaktura ;;
+    t)  getToken
+        eval nextopt=\${$OPTIND}
+        # existing and not starting with dash?
+        if [[ -n $nextopt && $nextopt != -* ]] ; then
+          OPTIND=$((OPTIND + 1))
+          enteredAccountId=$nextopt
+          getTransactions
+        else
+          echo "Missing accountId"
+          displayHelp
+        fi ;;
     v)  verbose='true' ;;
-    h)  displayHelp ;;
-    *)  displayHelp
+    h | *)  displayHelp
         exit 1 ;;
   esac
 done
