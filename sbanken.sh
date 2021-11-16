@@ -58,6 +58,27 @@ getAccounts() {
   done
 }
 
+getAccount() {
+  echo "Account $enteredAccountId"
+  account=$(curl -q -H "Authorization: Bearer $token" "https://publicapi.sbanken.no/apibeta/api/v2/accounts/$enteredAccountId"  2>/dev/null)
+
+  if [[ -n $verbose && $verbose == 'true' ]] ; then
+    accountNumber=$(echo $account | jq -r ".accountNumber")
+    accountId=$(echo $account | jq -r ".accountId")
+    accountsOutputFormat="%-20s\t%-20s\t%-11s\t%8.2f 💰\n"
+  else
+    accountsOutputFormat="%-20s\t%8.2f 💰\n"
+  fi
+  balance=$(echo $account | jq -r ".available")
+  name=$(echo $account | jq -r ".name")
+
+  if [[ -n $verbose && $verbose == 'true' ]] ; then
+    printf "$accountsOutputFormat" "$accountId" "$name" "$accountNumber" "$balance"
+  else
+    printf "$accountsOutputFormat" "$name" "$balance"
+  fi
+}
+
 getCards() {
   echo "Cards"
   cards=$(curl -q -H "Authorization: Bearer $token" "https://publicapi.sbanken.no/apibeta/api/v2/cards"  2>/dev/null)
@@ -95,8 +116,12 @@ while getopts 'acevh' flag; do
         # existing and not starting with dash?
         if [[ -n $nextopt && $nextopt != -* ]] ; then
           OPTIND=$((OPTIND + 1))
-        fi
-        getAccounts ;;
+          enteredAccountId=$nextopt
+          getAccount
+
+        else
+          getAccounts
+        fi ;;
     c)  getToken
         getCards ;;
     e)  getToken
