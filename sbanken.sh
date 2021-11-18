@@ -20,6 +20,7 @@ displayHelp() {
   echo "ARGUMENTS:"
   echo "  -h, --help      Print Help (this message)"
   echo "  -a, --accounts  Returns all available accounts"
+  echo "  -A              Returns primary account"
   echo "  -c, --cards     Returns all available cards"
   echo "  -e, --efaktura  Returns all available cards"
   echo
@@ -133,7 +134,7 @@ getEfaktura() {
 
 verbose='false'
 
-while getopts 'acetvh' flag; do
+while getopts 'Aacetvh' flag; do
   case "${flag}" in
     a)  getToken 
         eval nextopt=\${$OPTIND}
@@ -144,6 +145,15 @@ while getopts 'acetvh' flag; do
           getAccount
         else
           getAccounts
+        fi ;;
+    A)  if [[ -n $primaryAccount ]] ; then
+          echo $primaryAccount
+          enteredAccountId=$primaryAccount
+          getToken
+          getAccount
+        else
+          echo "Missing primaryAccount from config"
+          displayHelp
         fi ;;
     c)  getToken
         getCards ;;
