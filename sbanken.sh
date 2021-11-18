@@ -1,8 +1,8 @@
 #!/bin/bash
 
-getToken() {
-  source ~/repos/sbanken.sh/.env
+source $XDG_CONFIG_HOME/sbanken/config
 
+getToken() {
   acceptHeader='Accept: application/json'
   contentTypeHeader='Content-Type: application/x-www-form-urlencoded; charset=utf-8'
 

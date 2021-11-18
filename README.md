@@ -8,7 +8,7 @@ Inspired by [Sbanken's example](https://github.com/Sbanken/api-examples/blob/mas
 
 ### Environment variables
 
-1. Copy `.env.example`: `cp .env.example .env`
+1. Copy `config.example` to your `$XDG_CONFIG_HOME`: `cp config.example $XDG_CONFIG_HOME/sbanken/config`
 2. Update the variables with your own credentials
 
 ## Usage
@@ -17,3 +17,5 @@ Inspired by [Sbanken's example](https://github.com/Sbanken/api-examples/blob/mas
 chmod +x sbanken.sh
 ./sbanken.sh -h # for help
 ```
+
+PS: You can also add the `sbanken.sh` to your `$PATH` and run it from anywhere.
